@@ -1,11 +1,9 @@
-# mysql_database.py (после переименования)
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
-# Подключение к MySQL
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:564106@localhost/vacancies_db"
+SQLALCHEMY_DATABASE_URL = ""
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
