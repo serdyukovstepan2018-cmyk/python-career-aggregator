@@ -4,9 +4,9 @@ from mysql_database import Base, engine
 
 try:
     connection = pymysql.connect(
-        host='localhost',
-        user='root',
-        password='564106',
+        host='',
+        user='',
+        password='',
         database='mysql'
     )
     
