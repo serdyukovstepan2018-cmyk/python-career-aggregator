@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Python Вакансии</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .header {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .stats {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .stat {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        flex: 1;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        margin: 10px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .tech-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      input[type="text"] {
+        padding: 10px;
+        width: 300px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        padding: 10px 20px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .vacancy {
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Python Вакансии</h1>
+        <p>Агрегатор вакансий для Python-разработчиков</p>
+      </div>
+
+      <!-- Статистика -->
+      <div id="statsSection">
+        <h2>📊 Статистика</h2>
+        <div class="stats" id="stats">
+          <!-- Загрузится через JavaScript -->
+        </div>
+      </div>
+
+      <!-- Поиск -->
+      <div class="card">
+        <h2>🔍 Поиск вакансий</h2>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Введите Python, Django, FastAPI..."
+        />
+        <button onclick="searchVacancies()">Найти вакансии</button>
+        <div id="searchResults" style="margin-top: 20px"></div>
+      </div>
+
+      <!-- Технологии и компании -->
+      <div class="tech-list">
+        <div class="card">
+          <h2>Популярные технологии</h2>
+          <div id="techList">
+            <!-- Список технологий -->
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🏆 Топ компаний</h2>
+          <div id="companiesList">
+            <!-- Список компаний -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Загружаем данные при загрузке страницы
+      document.addEventListener("DOMContentLoaded", loadStats);
+
+      async function loadStats() {
+        try {
+          const response = await fetch("/stats");
+          const data = await response.json();
+
+          // Показываем статистику
+          document.getElementById("stats").innerHTML = `
+                    <div class="stat">
+                        <h3>Всего вакансий</h3>
+                        <h2>${data.total_vacancies}</h2>
+                    </div>
+                    <div class="stat">
+                        <h3>С зарплатой</h3>
+                        <h2>${data.with_salary}</h2>
+                    </div>
+                    <div class="stat">
+                        <h3>Топ компания</h3>
+                        <h4>${
+                          data.top_companies[0]
+                            ? data.top_companies[0].company
+                            : "Нет данных"
+                        }</h4>
+                    </div>
+                `;
+
+          // Показываем технологии
+          showTechnologies(data.top_technologies);
+          showCompanies(data.top_companies);
+        } catch (error) {
+          console.error("Ошибка загрузки статистики:", error);
+        }
+      }
+
+      function showTechnologies(techs) {
+        const techList = document.getElementById("techList");
+        if (techs.length === 0) {
+          techList.innerHTML = "<p>Нет данных о технологиях</p>";
+          return;
+        }
+
+        techList.innerHTML = techs
+          .map(
+            (tech) =>
+              `<p><strong>${tech.tech}</strong>: ${tech.count} вакансий</p>`
+          )
+          .join("");
+      }
+
+      function showCompanies(companies) {
+        const companiesList = document.getElementById("companiesList");
+        if (companies.length === 0) {
+          companiesList.innerHTML = "<p>Нет данных о компаниях</p>";
+          return;
+        }
+
+        companiesList.innerHTML = companies
+          .map(
+            (company) =>
+              `<p><strong>${company.company}</strong>: ${company.count} вакансий</p>`
+          )
+          .join("");
+      }
+
+      async function searchVacancies() {
+        const query = document.getElementById("searchInput").value;
+        if (!query) {
+          alert("Введите поисковый запрос");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/search?q=${encodeURIComponent(query)}`
+          );
+          const vacancies = await response.json();
+
+          const resultsDiv = document.getElementById("searchResults");
+
+          if (vacancies.length === 0) {
+            resultsDiv.innerHTML = "<p>Вакансии не найдены</p>";
+            return;
+          }
+
+          resultsDiv.innerHTML = `
+                    <h3>Найдено вакансий: ${vacancies.length}</h3>
+                    ${vacancies
+                      .map(
+                        (v) => `
+                        <div class="vacancy">
+                            <h4>${v.title}</h4>
+                            <p><strong>Компания:</strong> ${v.company}</p>
+                            <p><strong>Зарплата:</strong> ${
+                              v.salary || "Не указана"
+                            }</p>
+                            <a href="${
+                              v.link
+                            }" target="_blank"> Открыть вакансию</a>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                `;
+        } catch (error) {
+          console.error("Ошибка поиска:", error);
+          document.getElementById("searchResults").innerHTML =
+            "<p>Ошибка при поиске</p>";
+        }
+      }
+    </script>
+  </body>
+</html>
